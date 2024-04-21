@@ -128,15 +128,15 @@ def bin_upload(src, dst):
     ]
     for sql in commands:
         sql_query(connect(timeoutsec), sql, output=False)
-
-    bin_chunk = bin_split(src, 2048)
+    trans_chunk_size = 2048
+    bin_chunk = bin_split(src, trans_chunk_size)
     commands = []
     index = 0
     for b64_chunk in bin_chunk:
         commands.append("INSERT INTO pg_largeobject (loid, pageno, data) VALUES (%i, %i, decode('%s', 'base64'));" % (
             random_oid, index, b64_chunk))
         index += 1
-    for sql in tqdm(commands):
+    for sql in tqdm(commands, unit_scale=trans_chunk_size/1024, unit='KB'):
         sql_query(connect(timeoutsec), sql, output=False, output_err=False)
     sql_query(connect(timeoutsec), "SELECT lo_export(%i, '%s');" % (random_oid, dst), output=False)
     sql_query(connect(timeoutsec), "SELECT lo_unlink(%i);" % (random_oid), output=False)
