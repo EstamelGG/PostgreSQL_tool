@@ -1,5 +1,7 @@
 # 使用
 
+适用版本：PostgreSQL >= 9.3
+
 ## Windows 主机执行命令
 
 ```bash
